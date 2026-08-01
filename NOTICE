@@ -1,0 +1,28 @@
+evil-meshtastic-firmware
+========================
+
+This is a MODIFIED version of Meshtastic firmware.
+
+Upstream:  https://github.com/meshtastic/firmware
+Base:      Meshtastic firmware release v2.7.15
+Modified:  2026
+
+The modifications add offensive security-research features (an "evil node")
+for a DEF CON Ham Radio Village talk. Modified and added files include:
+
+  src/mesh/EvilNode.{cpp,h}
+  src/mesh/EvilCtrlModule.{cpp,h}
+  src/graphics/draw/EvilStatusRenderer.{cpp,h}
+  src/mesh/generated/meshtastic/evil_control.pb.{cpp,h}
+  hooks in src/mesh/Router.cpp, src/mesh/NextHopRouter.cpp,
+    src/mesh/MeshService.cpp, src/graphics/Screen.cpp
+  evil build environments in variants/**/platformio.ini
+
+Original Meshtastic firmware is Copyright Meshtastic LLC and contributors,
+licensed under the GNU General Public License v3.0.
+
+Modifications are Copyright (c) 2026 the evil-meshtastic authors, likewise
+licensed under the GNU General Public License v3.0. See LICENSE.
+
+Meshtastic(R) is a registered trademark of Meshtastic LLC. This project is not
+affiliated with, sponsored by, or endorsed by the Meshtastic project.
