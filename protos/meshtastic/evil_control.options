@@ -1,0 +1,3 @@
+# nanopb field constraints for EvilCtrlMsg
+# Max 64 bytes for the suffix string (fits in decoded payload with room to spare)
+meshtastic.EvilCtrlMsg.suffix max_size:64

