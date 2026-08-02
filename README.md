@@ -41,18 +41,23 @@ coding agent.
 Requires [PlatformIO](https://platformio.org).
 
 ```bash
+# Clone the firmware repo. The two TFT builds also need the device-ui fork
+# checked out as a sibling directory, so clone both side by side:
 git clone --recursive https://github.com/jmarler/evil-meshtastic-firmware
+git clone https://github.com/jmarler/evil-meshtastic-device-ui
 cd evil-meshtastic-firmware
 # pick the environment for your board:
-pio run -e heltec-v3-evil-full        # Heltec WiFi LoRa 32 V3 (OLED)
-pio run -e heltec-v4-tft-evil-full    # Heltec V4 TFT
-pio run -e t-deck-tft-evil            # LilyGo T-Deck (operator console)
+pio run -e heltec-v3-evil-full        # Heltec WiFi LoRa 32 V3 (OLED) — no device-ui needed
+pio run -e heltec-v4-tft-evil-full    # Heltec V4 TFT        (needs ../evil-meshtastic-device-ui)
+pio run -e t-deck-tft-evil            # LilyGo T-Deck console (needs ../evil-meshtastic-device-ui)
 # flash:
 pio run -e heltec-v3-evil-full -t upload
 ```
 
 The generated protobuf sources are committed in-tree, so a normal build does
-not require regenerating from the `protobufs` submodule.
+not require regenerating from the `protobufs` submodule. The TFT environments
+pull the on-device UI from the sibling `evil-meshtastic-device-ui` checkout via
+a local `symlink://` lib dependency.
 
 ## Related repos
 
