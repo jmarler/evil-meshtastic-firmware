@@ -11,6 +11,11 @@ option java_outer_classname = "EvilControlProtos";
  * Sent as a PRIVATE_APP (portnum 256) packet addressed to the local node.
  * The firmware's EvilCtrlModule processes it locally without radio TX.
  *
+ * All fields are optional / zero-default. To update only a subset of state,
+ * set the desired fields and leave others at zero — EXCEPT for fields that
+ * are legitimately zero (e.g. drop_rate=0 to disable dropping).  For those,
+ * the Python tool always sends the full desired state.
+ *
  * Project: Evil Meshtastic — DefCon 2026 HRV security research
  */
 message EvilCtrlMsg {
@@ -23,16 +28,28 @@ message EvilCtrlMsg {
      */
     uint32 transform = 1;
 
-    /* Custom suffix appended to messages when transform=3. Max 64 bytes. */
+    /*
+     * Custom suffix appended to messages when transform=3.
+     * Max 64 bytes. Ignored when transform != 3.
+     */
     string suffix = 2;
 
-    /* Random packet drop rate: 0–100 (percent of relay packets to silently drop). 0 = disabled. */
+    /*
+     * Random packet drop rate: 0–100 (percent of relay packets to silently drop).
+     * 0 = disabled (no dropping).
+     */
     uint32 drop_rate = 3;
 
-    /* Drop all packets from a specific node ID. 0 = disabled. */
+    /*
+     * Drop all packets from a specific node ID.
+     * 0 = disabled.
+     */
     uint32 drop_node = 4;
 
-    /* Drop all packets on a specific channel index. 255 = disabled. */
+    /*
+     * Drop all packets on a specific channel index.
+     * 255 = disabled.
+     */
     uint32 drop_channel = 5;
 
     /*
@@ -43,13 +60,21 @@ message EvilCtrlMsg {
      */
     uint32 hop_mode = 6;
 
-    /* Trigger a NodeInfo flood when true. */
+    /*
+     * Trigger a NodeInfo flood when true.
+     * Sends flood_count packets from random fake node IDs to exhaust the
+     * NodeDB of every node in range.
+     * Requires EVIL_ALLOW_FROM_OVERRIDE in firmware.
+     */
     bool flood = 7;
 
     /* Number of ghost nodes to inject (1–200). Only used when flood=true. */
     uint32 flood_count = 8;
 
-    /* Include fake 32-byte public keys in ghost NodeInfo packets. */
+    /*
+     * Include fake 32-byte public keys in ghost NodeInfo packets.
+     * Nodes with public keys are harder to evict when the NodeDB is full.
+     */
     bool flood_keys = 9;
 
     /* If true, reply with the current EvilCtrlMsg state (for status queries). */
@@ -58,10 +83,14 @@ message EvilCtrlMsg {
     /*
      * 32-bit operator authentication token. Must match the token generated on
      * first boot (stored in NVS). Packets with a missing or wrong token are
-     * silently rejected. Wire type: FIXED64 (8 bytes, zero-extended from 32-bit).
+     * silently rejected. Never transmitted over LoRa — local delivery only.
      */
     fixed64 token = 11;
 
-    /* Set by the firmware in status reply packets. */
+    /*
+     * Set by the firmware in status reply packets. When true, the message
+     * contains current EvilNode::state values rather than a command.
+     * evil_ctrl.py uses this to distinguish replies from commands.
+     */
     bool is_reply = 12;
 }
