@@ -65,6 +65,14 @@ typedef struct _meshtastic_EvilCtrlMsg {
  contains current EvilNode::state values rather than a command.
  evil_ctrl.py uses this to distinguish replies from commands. */
     bool is_reply;
+    /* Trigger a sync-word jam burst when true. Transmits raw LoRa frames on
+ Meshtastic's sync word (0x2b) back-to-back for jam_ms milliseconds,
+ ignoring duty cycle, then restores normal receive. Cage-only. Requires
+ the firmware built with EVIL_SYNCWORD_JAM. */
+    bool jam;
+    /* Duration of the sync-word jam burst in milliseconds. The firmware clamps
+ this to [100, 60000]; 0 means use the default (5000). */
+    uint32_t jam_ms;
 } meshtastic_EvilCtrlMsg;
 
 
@@ -73,8 +81,8 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define meshtastic_EvilCtrlMsg_init_default      {0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-#define meshtastic_EvilCtrlMsg_init_zero         {0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define meshtastic_EvilCtrlMsg_init_default      {0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define meshtastic_EvilCtrlMsg_init_zero         {0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define meshtastic_EvilCtrlMsg_transform_tag     1
@@ -89,6 +97,8 @@ extern "C" {
 #define meshtastic_EvilCtrlMsg_get_status_tag    10
 #define meshtastic_EvilCtrlMsg_token_tag         11
 #define meshtastic_EvilCtrlMsg_is_reply_tag      12
+#define meshtastic_EvilCtrlMsg_jam_tag           13
+#define meshtastic_EvilCtrlMsg_jam_ms_tag        14
 
 /* Struct field encoding specification for nanopb */
 #define meshtastic_EvilCtrlMsg_FIELDLIST(X, a) \
@@ -103,7 +113,9 @@ X(a, STATIC,   SINGULAR, UINT32,   flood_count,       8) \
 X(a, STATIC,   SINGULAR, BOOL,     flood_keys,        9) \
 X(a, STATIC,   SINGULAR, BOOL,     get_status,       10) \
 X(a, STATIC,   SINGULAR, FIXED64,  token,            11) \
-X(a, STATIC,   SINGULAR, BOOL,     is_reply,         12)
+X(a, STATIC,   SINGULAR, BOOL,     is_reply,         12) \
+X(a, STATIC,   SINGULAR, BOOL,     jam,              13) \
+X(a, STATIC,   SINGULAR, UINT32,   jam_ms,           14)
 #define meshtastic_EvilCtrlMsg_CALLBACK NULL
 #define meshtastic_EvilCtrlMsg_DEFAULT NULL
 
@@ -114,7 +126,7 @@ extern const pb_msgdesc_t meshtastic_EvilCtrlMsg_msg;
 
 /* Maximum encoded size of messages (where known) */
 #define MESHTASTIC_MESHTASTIC_EVIL_CONTROL_PB_H_MAX_SIZE meshtastic_EvilCtrlMsg_size
-#define meshtastic_EvilCtrlMsg_size              118
+#define meshtastic_EvilCtrlMsg_size              126
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -21,6 +21,10 @@
 #include <pb_encode.h>
 #include <string.h>
 
+#ifdef EVIL_SYNCWORD_JAM
+#include "RadioLibInterface.h"
+#endif
+
 // Platform random number source
 #ifdef ARCH_ESP32
 #include <esp_random.h>
@@ -285,6 +289,24 @@ void EvilNode::floodNodeInfo()
     }
 
     LOG_INFO("FLOOD: completed NodeInfo flood");
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// syncWordJam — LoRa sync-word PHY jamming
+// ─────────────────────────────────────────────────────────────────────────────
+
+void EvilNode::syncWordJam(uint32_t durationMs)
+{
+#ifdef EVIL_SYNCWORD_JAM
+    if (RadioLibInterface::instance) {
+        RadioLibInterface::instance->evilSyncWordJam(durationMs);
+    } else {
+        LOG_WARN("EvilNode: sync-word jam requested but no RadioLib radio is present");
+    }
+#else
+    (void)durationMs;
+    LOG_WARN("EvilNode: sync-word jam requested but EVIL_SYNCWORD_JAM not compiled in");
+#endif
 }
 
 #endif // EVIL_NODE

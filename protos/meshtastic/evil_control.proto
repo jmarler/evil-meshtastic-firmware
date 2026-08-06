@@ -93,4 +93,18 @@ message EvilCtrlMsg {
      * evil_ctrl.py uses this to distinguish replies from commands.
      */
     bool is_reply = 12;
+
+    /*
+     * Trigger a sync-word jam burst when true. Transmits raw LoRa frames on
+     * Meshtastic's sync word (0x2b) back-to-back for jam_ms milliseconds,
+     * ignoring duty cycle, then restores normal receive. Cage-only. Requires
+     * the firmware built with EVIL_SYNCWORD_JAM.
+     */
+    bool jam = 13;
+
+    /*
+     * Duration of the sync-word jam burst in milliseconds. The firmware clamps
+     * this to [100, 60000]; 0 means use the default (5000).
+     */
+    uint32 jam_ms = 14;
 }

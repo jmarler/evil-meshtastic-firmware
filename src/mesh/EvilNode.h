@@ -35,6 +35,9 @@
  *  -D EVIL_FLOOD_COUNT=200      Number of fake nodes to inject (default: 200)
  *  -D EVIL_FLOOD_WITH_KEY=1     Include fake 32-byte public keys (resists eviction)
  *
+ *  LoRa sync-word jamming:
+ *  -D EVIL_SYNCWORD_JAM=1       Enable sync-word jam burst (raw LoRa Tx on 0x2b, cage-only)
+ *
  * Phase 4.1 additions:
  *  Runtime control via EvilCtrlModule (MeshModule on PRIVATE_APP portnum 256).
  *  EvilNode::state holds the current runtime configuration; all attack functions
@@ -118,6 +121,10 @@ struct RuntimeState {
 #else
     bool flood_keys = false;
 #endif
+
+    // --- sync-word jam ------------------------------------------------------
+    // Duration of a jam burst in ms. EvilCtrlModule clamps to [100, 60000].
+    uint32_t jam_ms = 5000;
 };
 
 /** Live runtime state — read by shouldDrop / transformPacket / manipulateHopLimit. */
@@ -174,6 +181,19 @@ void manipulateHopLimit(meshtastic_MeshPacket *tosend);
  * Implements: NodeDB exhaustion attack.
  */
 void floodNodeInfo();
+
+/**
+ * Trigger a sync-word jam burst: transmit raw LoRa frames on Meshtastic's sync
+ * word (0x2b) back-to-back for durationMs milliseconds, ignoring duty cycle,
+ * then restore normal receive. Every node in range locks onto the preamble +
+ * sync word, waits, fails CRC, and is held off-channel.
+ *
+ * Blocks for the burst (yields between frames to feed the watchdog). Cage-only.
+ * Requires EVIL_SYNCWORD_JAM and a RadioLib radio; a no-op otherwise.
+ *
+ * Implements: LoRa sync-word PHY jamming.
+ */
+void syncWordJam(uint32_t durationMs);
 
 } // namespace EvilNode
 

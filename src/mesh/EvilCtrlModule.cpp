@@ -105,6 +105,19 @@ ProcessMessage EvilCtrlModule::handleReceived(const meshtastic_MeshPacket &mp)
             LOG_WARN("EvilCtrl: flood requested but EVIL_ALLOW_FROM_OVERRIDE not enabled");
 #endif
         }
+
+        // --- sync-word jam ----------------------------------------------
+        if (msg.jam_ms > 0)
+            EvilNode::state.jam_ms = msg.jam_ms;
+
+        if (msg.jam) {
+#ifdef EVIL_SYNCWORD_JAM
+            LOG_INFO("EvilCtrl: triggering sync-word jam (%u ms)", EvilNode::state.jam_ms);
+            EvilNode::syncWordJam(EvilNode::state.jam_ms);
+#else
+            LOG_WARN("EvilCtrl: jam requested but EVIL_SYNCWORD_JAM not enabled");
+#endif
+        }
     }
 
     // --- status reply -------------------------------------------------------
@@ -132,6 +145,7 @@ ProcessMessage EvilCtrlModule::handleReceived(const meshtastic_MeshPacket &mp)
         reply.hop_mode     = EvilNode::state.hop_mode;
         reply.flood_count  = EvilNode::state.flood_count;
         reply.flood_keys   = EvilNode::state.flood_keys;
+        reply.jam_ms       = EvilNode::state.jam_ms;
         strncpy(reply.suffix, EvilNode::state.suffix, sizeof(reply.suffix) - 1);
 
         meshtastic_MeshPacket *rp = packetPool.allocZeroed();

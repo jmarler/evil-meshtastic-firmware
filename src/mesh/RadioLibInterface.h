@@ -102,6 +102,16 @@ class RadioLibInterface : public RadioInterface, protected concurrency::Notified
      */
     static RadioLibInterface *instance;
 
+#ifdef EVIL_SYNCWORD_JAM
+    /**
+     * Evil sync-word jam: transmit raw LoRa frames on the node's sync word (0x2b)
+     * back-to-back for durationMs milliseconds (clamped to [100, 60000]), ignoring
+     * duty cycle, then restore normal receive. Blocks for the burst, yielding
+     * between frames to feed the watchdog. Cage-only.
+     */
+    void evilSyncWordJam(uint32_t durationMs);
+#endif
+
     /**
      * Glue functions called from ISR land
      */

